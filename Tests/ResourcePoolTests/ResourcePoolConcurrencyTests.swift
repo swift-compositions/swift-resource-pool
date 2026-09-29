@@ -109,12 +109,13 @@ struct ResourcePoolConcurrencyTests {
             }
         }
         let tracker = AcquisitionTracker()
+        let allQueued = Flag()
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             // Task 0: Hold the resource
             group.addTask {
                 try await pool.withResource { _ in
-                    await eventually { await pool.statistics.waitQueueDepth >= 5 }
+                    await eventually { await allQueued.isSet }
                 }
             }
 
@@ -129,6 +130,7 @@ struct ResourcePoolConcurrencyTests {
                 }
                 await eventually { await pool.statistics.waitQueueDepth >= taskId }
             }
+            await allQueued.set()
 
             try await group.waitForAll()
         }
@@ -415,12 +417,13 @@ struct ResourcePoolConcurrencyTests {
             }
         }
         let tracker = OrderTracker()
+        let allQueued = Flag()
 
         try await withThrowingTaskGroup(of: Void.self) { group in
             // Hold the resource
             group.addTask {
                 try await pool.withResource { _ in
-                    await eventually { await pool.statistics.waitQueueDepth >= 10 }
+                    await eventually { await allQueued.isSet }
                 }
             }
 
@@ -436,6 +439,7 @@ struct ResourcePoolConcurrencyTests {
                 }
                 await eventually { await pool.statistics.waitQueueDepth >= i }
             }
+            await allQueued.set()
 
             try await group.waitForAll()
         }

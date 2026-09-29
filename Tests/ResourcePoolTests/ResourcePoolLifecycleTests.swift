@@ -209,10 +209,6 @@ struct ResourcePoolLifecycleTests {
             warmup: true
         )
 
-        actor Flag {
-            var isSet = false
-            func set() { isSet = true }
-        }
         let closed = Flag()
 
         await withTaskGroup(of: Void.self) { group in
