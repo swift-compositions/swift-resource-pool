@@ -129,18 +129,16 @@ struct ResourcePoolBasicTests {
             for _ in 0..<5 {
                 group.addTask {
                     try await pool.withResource { _ in
-                        try await Task.sleep(for: .milliseconds(200))
+                        await eventually { await !tracker.observations.isEmpty }
                     }
                 }
             }
 
             // Monitoring task to sample utilization
             group.addTask {
-                for _ in 0..<15 {
-                    try await Task.sleep(for: .milliseconds(20))
-                    let stats = await pool.statistics
-                    await tracker.record(stats.utilization)
-                }
+                await eventually { await pool.statistics.leased >= 5 }
+                let stats = await pool.statistics
+                await tracker.record(stats.utilization)
             }
 
             try await group.waitForAll()
@@ -247,7 +245,6 @@ struct ResourcePoolBasicTests {
                 return resource.id
             }
             usedIds.append(id)
-            try await Task.sleep(for: .milliseconds(20))
         }
 
         // With capacity 1, should reuse the same resource
@@ -283,12 +280,12 @@ struct ResourcePoolBasicTests {
             for _ in 0..<2 {
                 group.addTask {
                     try await pool.withResource { _ in
-                        try await Task.sleep(for: .milliseconds(200))
+                        await eventually { await tracker.sawBackpressure }
                     }
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.leased >= 2 }
 
             // Try to acquire when exhausted
             group.addTask {
@@ -298,7 +295,7 @@ struct ResourcePoolBasicTests {
             }
 
             // Check for backpressure
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.waitQueueDepth >= 1 }
             let stats = await pool.statistics
             if stats.hasBackpressure {
                 await tracker.recordBackpressure()
@@ -324,7 +321,7 @@ struct ResourcePoolBasicTests {
             for _ in 0..<20 {
                 group.addTask {
                     try await pool.withResource(timeout: .seconds(5)) { _ in
-                        try await Task.sleep(for: .milliseconds(10))
+                        for _ in 0..<100 { await Task.yield() }
                     }
                 }
             }
