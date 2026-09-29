@@ -68,11 +68,11 @@ struct ResourcePoolConcurrencyTests {
                     #expect(stats.available == 0)
                     #expect(stats.leased == 1)
 
-                    try await Task.sleep(for: .milliseconds(100))
+                    await eventually { await pool.statistics.waitQueueDepth >= 1 }
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.leased >= 1 }
 
             // Task 2: Wait for resource
             group.addTask {
@@ -114,22 +114,20 @@ struct ResourcePoolConcurrencyTests {
             // Task 0: Hold the resource
             group.addTask {
                 try await pool.withResource { _ in
-                    try await Task.sleep(for: .milliseconds(200))
+                    await eventually { await pool.statistics.waitQueueDepth >= 5 }
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.leased >= 1 }
 
             // Tasks 1-5: Queue up in order
             for taskId in 1...5 {
                 group.addTask {
                     try await pool.withResource(timeout: .seconds(5)) { _ in
                         await tracker.recordAcquisition(taskId)
-                        try await Task.sleep(for: .milliseconds(20))
                     }
                 }
-                // Small delay to ensure ordering
-                try await Task.sleep(for: .milliseconds(10))
+                await eventually { await pool.statistics.waitQueueDepth >= taskId }
             }
 
             try await group.waitForAll()
@@ -166,7 +164,6 @@ struct ResourcePoolConcurrencyTests {
                 return resource.id
             }
             await usage.record(id)
-            try await Task.sleep(for: .milliseconds(50))
         }
 
         let usageOrder = await usage.usageOrder
@@ -423,11 +420,11 @@ struct ResourcePoolConcurrencyTests {
             // Hold the resource
             group.addTask {
                 try await pool.withResource { _ in
-                    try await Task.sleep(for: .milliseconds(300))
+                    await eventually { await pool.statistics.waitQueueDepth >= 10 }
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.leased >= 1 }
 
             // Queue up 10 waiters
             for i in 1...10 {
@@ -435,10 +432,9 @@ struct ResourcePoolConcurrencyTests {
                 group.addTask {
                     try await pool.withResource(timeout: .seconds(10)) { _ in
                         await tracker.recordAcquired(i)
-                        try await Task.sleep(for: .milliseconds(20))
                     }
                 }
-                try await Task.sleep(for: .milliseconds(5))
+                await eventually { await pool.statistics.waitQueueDepth >= i }
             }
 
             try await group.waitForAll()
