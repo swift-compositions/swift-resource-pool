@@ -150,6 +150,13 @@ actor DatabaseConnection: PoolableResource {
 
 // MARK: - Test Utilities
 
+func eventually(_ condition: () async -> Bool) async {
+    for _ in 0..<1_000_000 {
+        if await condition() { return }
+        await Task.yield()
+    }
+}
+
 extension Duration {
     func formatted() -> String {
         let totalNanos = components.seconds * 1_000_000_000 + components.attoseconds / 1_000_000_000

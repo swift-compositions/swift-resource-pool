@@ -26,7 +26,7 @@ struct ResourcePoolLifecycleTests {
             }
         }
 
-        try await Task.sleep(for: .milliseconds(50))
+        await eventually { await pool.statistics.leased >= 2 }
 
         await pool.close()
 
@@ -56,7 +56,7 @@ struct ResourcePoolLifecycleTests {
             }
         }
 
-        try await Task.sleep(for: .milliseconds(50))
+        await eventually { await pool.statistics.leased >= 1 }
 
         let drainTask = Task {
             try await pool.drain(timeout: .seconds(1))
@@ -93,7 +93,7 @@ struct ResourcePoolLifecycleTests {
             }
         }
 
-        try await Task.sleep(for: .milliseconds(50))
+        await eventually { await pool.statistics.leased >= 1 }
 
         // A bare typed `catch` is used instead of `catch PoolError.drainTimeout`:
         // the case-pattern catch over a `throws(PoolError)` callee crashes the
@@ -256,7 +256,7 @@ struct ResourcePoolLifecycleTests {
             }
         }
 
-        try await Task.sleep(for: .milliseconds(50))
+        await eventually { await pool.statistics.leased >= 1 }
 
         // Close while resource is leased
         await pool.close()
@@ -283,7 +283,7 @@ struct ResourcePoolLifecycleTests {
             }
         }
 
-        try await Task.sleep(for: .milliseconds(50))
+        await eventually { await pool.statistics.leased >= 1 }
 
         let waiter = Task {
             try await pool.withResource(timeout: .seconds(10)) { _ in
@@ -291,7 +291,7 @@ struct ResourcePoolLifecycleTests {
             }
         }
 
-        try await Task.sleep(for: .milliseconds(50))
+        await eventually { await pool.statistics.waitQueueDepth >= 1 }
 
         // Verify waiter is queued
         let statsDuringWait = await pool.statistics
@@ -316,13 +316,15 @@ struct ResourcePoolLifecycleTests {
             warmup: true
         )
 
+        try await pool.waitForWarmupCompletion()
+
         let task = Task {
             try await pool.withResource { _ in
                 try await Task.sleep(for: .seconds(10))
             }
         }
 
-        try await Task.sleep(for: .milliseconds(50))
+        await eventually { await pool.statistics.leased >= 1 }
 
         let statsDuring = await pool.statistics
         #expect(statsDuring.leased == 1)
