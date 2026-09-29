@@ -11,8 +11,8 @@ struct ResourcePoolPerformanceTests {
         let pool = try await ResourcePool<MockResource>(
             capacity: 20,
             resourceConfig: .init(
-                creationDelay: .milliseconds(1),
-                resetDelay: .milliseconds(1)
+                creationDelay: .zero,
+                resetDelay: .zero
             ),
             warmup: true
         )
@@ -92,8 +92,8 @@ struct ResourcePoolPerformanceTests {
             let pool = try await ResourcePool<MockResource>(
                 capacity: capacity,
                 resourceConfig: .init(
-                    creationDelay: .milliseconds(1),
-                    resetDelay: .milliseconds(1)
+                    creationDelay: .zero,
+                    resetDelay: .zero
                 ),
                 warmup: true
             )
@@ -249,8 +249,8 @@ struct ResourcePoolPerformanceTests {
             let pool = try await ResourcePool<MockResource>(
                 capacity: 10,
                 resourceConfig: .init(
-                    creationDelay: .milliseconds(1),
-                    resetDelay: .milliseconds(1)
+                    creationDelay: .zero,
+                    resetDelay: .zero
                 ),
                 warmup: true
             )
@@ -389,8 +389,8 @@ struct ResourcePoolPerformanceTests {
             let pool = try await ResourcePool<MockResource>(
                 capacity: capacity,
                 resourceConfig: .init(
-                    creationDelay: .milliseconds(1),
-                    resetDelay: .milliseconds(1)
+                    creationDelay: .zero,
+                    resetDelay: .zero
                 ),
                 warmup: true
             )

@@ -180,8 +180,8 @@ struct ResourcePoolConcurrencyTests {
         let pool = try await ResourcePool<MockResource>(
             capacity: 2,
             resourceConfig: .init(
-                creationDelay: .milliseconds(1),
-                resetDelay: .milliseconds(1)
+                creationDelay: .zero,
+                resetDelay: .zero
             ),
             warmup: true
         )
@@ -246,8 +246,8 @@ struct ResourcePoolConcurrencyTests {
         let pool = try await ResourcePool<MockResource>(
             capacity: 10,
             resourceConfig: .init(
-                creationDelay: .milliseconds(5),
-                resetDelay: .milliseconds(2)
+                creationDelay: .zero,
+                resetDelay: .zero
             ),
             warmup: true
         )

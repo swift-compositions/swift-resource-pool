@@ -84,10 +84,20 @@ struct ResourcePoolBasicTests {
             return resource.id
         }
 
+        actor Arrivals {
+            var count = 0
+            func arrive() { count += 1 }
+        }
+        let arrivals = Arrivals()
+
         try await withThrowingTaskGroup(of: UUID.self) { group in
             for _ in 0..<3 {
                 group.addTask {
-                    try await pool.withResource { $0.id }
+                    try await pool.withResource { resource in
+                        await arrivals.arrive()
+                        await eventually { await arrivals.count >= 3 }
+                        return resource.id
+                    }
                 }
             }
 

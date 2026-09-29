@@ -16,8 +16,8 @@ actor MockResource: PoolableResource {
 
         init(
             name: String = "test",
-            creationDelay: Duration = .milliseconds(10),
-            resetDelay: Duration = .milliseconds(5),
+            creationDelay: Duration = .zero,
+            resetDelay: Duration = .zero,
             shouldFailValidation: Bool = false,
             shouldFailReset: Bool = false,
             failResetAfterUses: Int? = nil
@@ -42,7 +42,7 @@ actor MockResource: PoolableResource {
     }
 
     static func create(config: Config) async throws -> MockResource {
-        try await Task.sleep(for: config.creationDelay)
+        if config.creationDelay > .zero { try await Task.sleep(for: config.creationDelay) }
         return MockResource(config: config)
     }
 
@@ -51,7 +51,7 @@ actor MockResource: PoolableResource {
     }
 
     func reset() async throws {
-        try await Task.sleep(for: config.resetDelay)
+        if config.resetDelay > .zero { try await Task.sleep(for: config.resetDelay) }
 
         if config.shouldFailReset {
             throw MockError.resetFailed
@@ -120,7 +120,7 @@ actor DatabaseConnection: PoolableResource {
     private var transactionDepth = 0
 
     static func create(config: Config) async throws -> DatabaseConnection {
-        try await Task.sleep(for: .milliseconds(50))
+        await Task.yield()
         return DatabaseConnection()
     }
 
@@ -130,7 +130,7 @@ actor DatabaseConnection: PoolableResource {
 
     func reset() async throws {
         transactionDepth = 0
-        try await Task.sleep(for: .milliseconds(10))
+        await Task.yield()
     }
 
     func beginTransaction() {
@@ -144,7 +144,7 @@ actor DatabaseConnection: PoolableResource {
     }
 
     func query(_ sql: String) async throws -> [String] {
-        try await Task.sleep(for: .milliseconds(20))
+        await Task.yield()
         return ["result1", "result2"]
     }
 }
