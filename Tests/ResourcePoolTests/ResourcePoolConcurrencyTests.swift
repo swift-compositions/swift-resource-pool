@@ -18,7 +18,7 @@ struct ResourcePoolConcurrencyTests {
             for i in 0..<20 {
                 group.addTask {
                     try await pool.withResource { resource in
-                        try await Task.sleep(for: .milliseconds(10))
+                        for _ in 0..<100 { await Task.yield() }
                         return "Task \(i): \(resource.id)"
                     }
                 }
@@ -203,7 +203,7 @@ struct ResourcePoolConcurrencyTests {
                 group.addTask {
                     try await pool.withResource(timeout: .seconds(10)) { _ in
                         await tracker.recordCompletion(taskId: taskId)
-                        try await Task.sleep(for: .milliseconds(5))
+                        for _ in 0..<100 { await Task.yield() }
                     }
                 }
             }
@@ -258,7 +258,7 @@ struct ResourcePoolConcurrencyTests {
                 group.addTask {
                     for _ in 0..<operationsPerTask {
                         try await pool.withResource(timeout: .seconds(5)) { resource in
-                            try await Task.sleep(for: .microseconds(100))
+                            for _ in 0..<100 { await Task.yield() }
                             _ = resource.id
                         }
                     }
@@ -310,7 +310,7 @@ struct ResourcePoolConcurrencyTests {
                 }
             }
 
-            try? await Task.sleep(for: .milliseconds(100))
+            await eventually { await pool.statistics.leased >= 2 }
 
             group.cancelAll()
 
@@ -370,7 +370,7 @@ struct ResourcePoolConcurrencyTests {
                 group.addTask {
                     do {
                         try await pool.withResource(timeout: .seconds(1)) { _ in
-                            try await Task.sleep(for: .milliseconds(10))
+                            for _ in 0..<100 { await Task.yield() }
                         }
                     } catch {
                         // Timeouts expected
@@ -383,7 +383,7 @@ struct ResourcePoolConcurrencyTests {
                 for _ in 0..<100 {
                     let stats = await pool.statistics
                     await validator.validate(stats)
-                    try? await Task.sleep(for: .milliseconds(5))
+                    await Task.yield()
                 }
             }
 
@@ -460,7 +460,7 @@ struct ResourcePoolConcurrencyTests {
             for _ in 0..<50 {
                 group.addTask {
                     try await pool.withResource(timeout: .seconds(5)) { _ in
-                        try await Task.sleep(for: .milliseconds(10))
+                        for _ in 0..<100 { await Task.yield() }
                     }
                 }
             }
