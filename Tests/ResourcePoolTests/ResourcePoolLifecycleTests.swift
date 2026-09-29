@@ -331,8 +331,6 @@ struct ResourcePoolLifecycleTests {
         _ = try? await task.value
 
         // Resource should be returned after cancellation
-        try await Task.sleep(for: .milliseconds(100))
-
         let statsAfter = await pool.statistics
         #expect(statsAfter.leased == 0)
         #expect(statsAfter.available == 2)

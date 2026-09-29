@@ -33,8 +33,6 @@ struct ResourcePoolBasicTests {
         }
         #expect(!result.isEmpty)
 
-        try await Task.sleep(for: .milliseconds(100))
-
         let afterStats = await pool.statistics
         #expect(afterStats.available == 3)
         #expect(afterStats.leased == 0)
@@ -100,8 +98,6 @@ struct ResourcePoolBasicTests {
             #expect(ids.count == 3)
         }
 
-        try await Task.sleep(for: .milliseconds(100))
-
         let finalStats = await pool.statistics
         #expect(finalStats.available == 3)
         #expect(finalStats.leased == 0)
@@ -154,7 +150,6 @@ struct ResourcePoolBasicTests {
         let sawTargetRange = await tracker.sawTargetRange
         #expect(sawTargetRange, "Should have observed utilization in range 0.4-0.6")
 
-        try await Task.sleep(for: .milliseconds(100))
         let finalStats = await pool.statistics
         #expect(finalStats.utilization == 0.0)
     }
@@ -170,8 +165,6 @@ struct ResourcePoolBasicTests {
         for _ in 0..<5 {
             _ = try await pool.withResource { $0.id }
         }
-
-        try await Task.sleep(for: .milliseconds(100))
 
         let metrics = await pool.metrics
         #expect(metrics.totalAcquisitions == 5)
@@ -220,6 +213,8 @@ struct ResourcePoolBasicTests {
             warmup: true
         )
 
+        try await pool.waitForWarmupCompletion()
+
         struct TestError: Swift.Error {}
 
         do {
@@ -230,8 +225,6 @@ struct ResourcePoolBasicTests {
         } catch is TestError {
             // Expected
         }
-
-        try await Task.sleep(for: .milliseconds(100))
 
         let stats = await pool.statistics
         #expect(stats.available == 2)
