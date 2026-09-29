@@ -1,4 +1,5 @@
 import Foundation
+import Testing
 
 @testable import ResourcePool
 
@@ -155,6 +156,7 @@ func eventually(_ condition: () async -> Bool) async {
         if await condition() { return }
         await Task.yield()
     }
+    Issue.record("condition not met within 1,000,000 yields")
 }
 
 extension Duration {

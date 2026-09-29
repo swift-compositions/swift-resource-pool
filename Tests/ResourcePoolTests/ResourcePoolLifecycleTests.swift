@@ -152,11 +152,11 @@ struct ResourcePoolLifecycleTests {
             // Hold resource
             group.addTask {
                 try await pool.withResource { _ in
-                    try await Task.sleep(for: .milliseconds(200))
+                    await eventually { await tracker.closedErrors >= 5 }
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.leased >= 1 }
 
             // Queue multiple waiters
             for _ in 0..<5 {
@@ -171,7 +171,7 @@ struct ResourcePoolLifecycleTests {
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.waitQueueDepth >= 5 }
 
             // Drain should resume all waiters
             try? await pool.drain(timeout: .milliseconds(100))
@@ -209,13 +209,19 @@ struct ResourcePoolLifecycleTests {
             warmup: true
         )
 
+        actor Flag {
+            var isSet = false
+            func set() { isSet = true }
+        }
+        let closed = Flag()
+
         await withTaskGroup(of: Void.self) { group in
             // Start acquisitions
             for _ in 0..<10 {
                 group.addTask {
                     do {
                         _ = try await pool.withResource(timeout: .milliseconds(100)) { _ in
-                            try await Task.sleep(for: .milliseconds(200))
+                            await eventually { await closed.isSet }
                         }
                     } catch {
                         // Some will fail with closed error
@@ -223,8 +229,9 @@ struct ResourcePoolLifecycleTests {
                 }
             }
 
-            try? await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.leased >= 5 }
             await pool.close()
+            await closed.set()
 
             await group.waitForAll()
         }
@@ -352,7 +359,7 @@ struct ResourcePoolLifecycleTests {
                 for _ in 0..<5 {
                     group.addTask {
                         try await pool.withResource { _ in
-                            try await Task.sleep(for: .milliseconds(10))
+                            for _ in 0..<100 { await Task.yield() }
                         }
                     }
                 }
@@ -418,11 +425,11 @@ struct ResourcePoolLifecycleTests {
             // Hold resource
             group.addTask {
                 try await pool.withResource { _ in
-                    try await Task.sleep(for: .milliseconds(200))
+                    await eventually { await counter.count >= 10 }
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.leased >= 1 }
 
             // Start multiple waiters
             for _ in 0..<10 {
@@ -435,7 +442,7 @@ struct ResourcePoolLifecycleTests {
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.waitQueueDepth >= 10 }
             await pool.close()
 
             try await group.waitForAll()
@@ -511,7 +518,7 @@ struct ResourcePoolLifecycleTests {
                 }
             }
 
-            try await Task.sleep(for: .milliseconds(50))
+            await eventually { await pool.statistics.leased >= 1 }
 
             group.addTask {
                 do {
