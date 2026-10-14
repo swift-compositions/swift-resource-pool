@@ -219,7 +219,7 @@ struct ResourcePoolConcurrencyTests {
         print("\n=== No Thundering Herd Verification ===")
         print("Tasks completed: \(completedCount)/20")
         print("Direct handoffs: \(metrics.directHandoffs)")
-        print("Handoff rate: \(String(format: "%.1f%%", metrics.handoffRate * 100))")
+        print(unsafe "Handoff rate: \(String(format: "%.1f%%", metrics.handoffRate * 100))")
         print("Timeouts: \(metrics.timeouts)")
 
         // Key validations for no thundering herd:
@@ -480,6 +480,6 @@ struct ResourcePoolConcurrencyTests {
         print("\nDirect Handoff Efficiency:")
         print("Total returns: \(metrics.successfulReturns)")
         print("Direct handoffs: \(metrics.directHandoffs)")
-        print("Handoff rate: \(String(format: "%.1f%%", metrics.handoffRate * 100))")
+        print(unsafe "Handoff rate: \(String(format: "%.1f%%", metrics.handoffRate * 100))")
     }
 }

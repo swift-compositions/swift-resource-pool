@@ -39,7 +39,7 @@ struct ResourcePoolPerformanceTests {
         print("Total operations: \(totalOps)")
         print("Duration: \(duration.formatted())")
         print(
-            "Ops/sec: \(String(format: "%.1f", Double(totalOps) / (Double(duration.components.seconds) + Double(duration.components.attoseconds) / 1e18)))"
+            unsafe "Ops/sec: \(String(format: "%.1f", Double(totalOps) / (Double(duration.components.seconds) + Double(duration.components.attoseconds) / 1e18)))"
         )
         print("Timeouts: \(metrics.timeouts)")
         print(
@@ -138,7 +138,7 @@ struct ResourcePoolPerformanceTests {
                     Double(duration.components.attoseconds) / 1_000_000_000_000_000
                 } ?? 0.0
 
-            print(
+            unsafe print(
                 String(
                     format: "%4lld      %4lld   %5lld     %-12@  %7.1f   %6.1fms  %3lld",
                     result.capacity,
@@ -176,7 +176,7 @@ struct ResourcePoolPerformanceTests {
                 guard !latencies.isEmpty else { return nil }
                 let sorted = latencies.sorted()
                 let index = Int(Double(sorted.count) * p)
-                return sorted[Swift.min(index, sorted.count - 1)]
+                return sorted[Swift::min(index, sorted.count - 1)]
             }
 
             func max() -> Duration? { latencies.max() }
@@ -222,7 +222,7 @@ struct ResourcePoolPerformanceTests {
             let avgNs = Double(avg.components.attoseconds) / 1_000_000_000
 
             let ratio = p99Ns / avgNs
-            print("P99/Avg ratio: \(String(format: "%.1fx", ratio))")
+            print(unsafe "P99/Avg ratio: \(String(format: "%.1fx", ratio))")
         }
     }
 
@@ -315,7 +315,7 @@ struct ResourcePoolPerformanceTests {
                     Double(duration.components.attoseconds) / 1_000_000_000_000_000
                 } ?? 0.0
 
-            print(
+            unsafe print(
                 String(
                     format: "%4lld     %-11@  %6.1f   %6.1fms  %4lld      %4.1f%%",
                     result.concurrentWaiters,
@@ -337,10 +337,10 @@ struct ResourcePoolPerformanceTests {
             let improvement = ((scaled - baseline) / baseline) * 100
 
             print("\nScalability (30 -> 100 waiters):")
-            print("  Baseline (30): \(String(format: "%.1f", baseline)) ops/sec")
-            print("  Scaled (100): \(String(format: "%.1f", scaled)) ops/sec")
-            print("  Scaling factor: \(String(format: "%.2fx", scalingFactor))")
-            print("  Improvement: \(String(format: "%.1f%%", improvement))")
+            print(unsafe "  Baseline (30): \(String(format: "%.1f", baseline)) ops/sec")
+            print(unsafe "  Scaled (100): \(String(format: "%.1f", scaled)) ops/sec")
+            print(unsafe "  Scaling factor: \(String(format: "%.2fx", scalingFactor))")
+            print(unsafe "  Improvement: \(String(format: "%.1f%%", improvement))")
 
         }
     }
@@ -370,7 +370,7 @@ struct ResourcePoolPerformanceTests {
         print("Total returns: \(metrics.successfulReturns)")
         print("Direct handoffs: \(metrics.directHandoffs)")
         print("Returns to pool: \(metrics.successfulReturns - metrics.directHandoffs)")
-        print("Handoff rate: \(String(format: "%.1f%%", metrics.handoffRate * 100))")
+        print(unsafe "Handoff rate: \(String(format: "%.1f%%", metrics.handoffRate * 100))")
 
         #expect(metrics.handoffRate > 0.5)
     }
@@ -433,7 +433,7 @@ struct ResourcePoolPerformanceTests {
 
         for result in results {
             let waitMs = Double(result.avgWaitTime.components.attoseconds) / 1_000_000_000_000_000
-            print(
+            unsafe print(
                 String(
                     format: "%4lld          %6.1f ops/s   %6.1f ms",
                     result.capacity,
@@ -578,11 +578,10 @@ struct ResourcePoolPerformanceTests {
         print("\n=== SUSTAINED vs BURSTY LOAD ===")
         print("Sustained (100 tasks with 5ms gaps):")
         print("  Duration: \(sustainedDuration.formatted())")
-        print("  Handoff rate: \(String(format: "%.1f%%", sustainedMetrics.handoffRate * 100))")
+        print(unsafe "  Handoff rate: \(String(format: "%.1f%%", sustainedMetrics.handoffRate * 100))")
         print("Bursty (5 bursts of 20 concurrent tasks):")
         print("  Duration: \(burstyDuration.formatted())")
-        print("  Handoff rate: \(String(format: "%.1f%%", burstyMetrics.handoffRate * 100))")
-
+        print(unsafe "  Handoff rate: \(String(format: "%.1f%%", burstyMetrics.handoffRate * 100))")
 
         // Both should complete without timeouts
         #expect(sustainedMetrics.timeouts == 0)

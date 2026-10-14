@@ -72,7 +72,7 @@ actor MockResource: PoolableResource {
         isValid = false
     }
 
-    enum MockError: Swift.Error {
+    enum MockError: Swift::Error {
         case resetFailed
     }
 }
@@ -98,7 +98,7 @@ actor FailingResource: PoolableResource {
     func validate() async -> Bool { true }
     func reset() async throws {}
 
-    enum CreationError: Swift.Error {
+    enum CreationError: Swift::Error {
         case intentionalFailure
     }
 }
@@ -171,9 +171,9 @@ extension Duration {
         if totalNanos < 1_000_000 {
             return "\(totalNanos) ns"
         } else if totalNanos < 1_000_000_000 {
-            return String(format: "%.2f ms", Double(totalNanos) / 1_000_000)
+            return unsafe String(format: "%.2f ms", Double(totalNanos) / 1_000_000)
         } else {
-            return String(format: "%.2f s", Double(totalNanos) / 1_000_000_000)
+            return unsafe String(format: "%.2f s", Double(totalNanos) / 1_000_000_000)
         }
     }
 }

@@ -223,7 +223,7 @@ struct ResourcePoolBasicTests {
 
         try await pool.waitForWarmupCompletion()
 
-        struct TestError: Swift.Error {}
+        struct TestError: Swift::Error {}
 
         do {
             try await pool.withResource { _ in
